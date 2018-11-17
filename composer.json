@@ -1,6 +1,6 @@
 {
-    "name": "epii/cli",
-    "description": "一个超级简单的php cli 环境下开发的基础框架。",
+    "name": "epii/tiny-app",
+    "description": "一个超级简单的php app基础，可用于简单的api开发。",
     "authors": [
         {
             "name": "MrRen Epii",
