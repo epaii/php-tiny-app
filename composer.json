@@ -1,0 +1,19 @@
+{
+    "name": "epii/cli",
+    "description": "一个超级简单的php cli 环境下开发的基础框架。",
+    "authors": [
+        {
+            "name": "MrRen Epii",
+            "email":"543169072@qq.com"
+        }
+    ],
+    "license": "MIT",
+    "require": {
+        "php": ">=7.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "epii\\server\\": "src/"
+        }
+    }
+}
