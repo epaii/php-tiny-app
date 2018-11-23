@@ -11,5 +11,5 @@ namespace epii\server\i;
 
 interface IRun
 {
-    public function run();
+    public function run($name);
 }

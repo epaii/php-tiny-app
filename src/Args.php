@@ -9,7 +9,7 @@
 namespace epii\server;
 
 
-class Args implements \ArrayAccess
+class Args
 {
 
     private static $configs = [];
@@ -19,9 +19,18 @@ class Args implements \ArrayAccess
 
     }
 
-    public static function setConfig($config)
+    public static function setConfig($config, $value = null)
     {
-        self::$configs = $config;
+        if (is_array($config))
+            self::$configs = array_merge(self::$configs, $config);
+        else if (is_string($config)) {
+            self::$configs[$config] = $value;
+        }
+    }
+
+    public static function setValue($config, $value = null)
+    {
+        self::setConfig($config, $value);
     }
 
 
@@ -50,7 +59,7 @@ class Args implements \ArrayAccess
      * @param integer|NULL $index
      * @return array|string|NULL
      */
-    public  static function getVal($index = NULL)
+    public static function getVal($index = NULL)
     {
         if (is_null($index)) {
             return $_GET;
@@ -103,79 +112,6 @@ class Args implements \ArrayAccess
             return $_SESSION[$index];
         }
         return null;
-    }
-
-
-    /**
-     * Whether a offset exists
-     * @link http://php.net/manual/en/arrayaccess.offsetexists.php
-     * @param mixed $offset <p>
-     * An offset to check for.
-     * </p>
-     * @return boolean true on success or false on failure.
-     * </p>
-     * <p>
-     * The return value will be casted to boolean if non-boolean was returned.
-     * @since 5.0.0
-     */
-    public  function offsetExists($offset)
-    {
-        // TODO: Implement offsetExists() method.
-        return isset($_REQUEST[$offset]) || $_SESSION[$offset];
-    }
-
-    /**
-     * Offset to retrieve
-     * @link http://php.net/manual/en/arrayaccess.offsetget.php
-     * @param mixed $offset <p>
-     * The offset to retrieve.
-     * </p>
-     * @return mixed Can return all value types.
-     * @since 5.0.0
-     */
-    public function offsetGet($offset)
-    {
-        // TODO: Implement offsetGet() method.
-
-        return  self::val($offset);
-    }
-
-    /**
-     * Offset to set
-     * @link http://php.net/manual/en/arrayaccess.offsetset.php
-     * @param mixed $offset <p>
-     * The offset to assign the value to.
-     * </p>
-     * @param mixed $value <p>
-     * The value to set.
-     * </p>
-     * @return void
-     * @since 5.0.0
-     */
-    public function offsetSet($offset, $value)
-    {
-        // TODO: Implement offsetSet() method.
-        self::$configs[$offset] = $value;
-    }
-
-    /**
-     * Offset to unset
-     * @link http://php.net/manual/en/arrayaccess.offsetunset.php
-     * @param mixed $offset <p>
-     * The offset to unset.
-     * </p>
-     * @return void
-     * @since 5.0.0
-     */
-    public function offsetUnset($offset)
-    {
-        // TODO: Implement offsetUnset() method.
-        unset($_GET[$offset]);
-        unset($_POST[$offset]);
-        unset($_COOKIE[$offset]);
-        unset($_SESSION[$offset]);
-        unset(self::$configs[$offset]);
-
     }
 
 

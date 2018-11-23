@@ -5,7 +5,6 @@ namespace epii\server;
 use epii\server\i\IRun;
 
 
-
 /**
  * Created by PhpStorm.
  * User: mrren
@@ -102,7 +101,7 @@ class App
         }
 
 
-        if (is_string($app) && (class_exists($app) || class_exists($app = $this->base_namespace."\\" . $app))) {
+        if (is_string($app) && (class_exists($app) || class_exists($app = $this->base_namespace . "\\" . $app))) {
             $run = new $app();
             $this->beforRun($run);
             if (method_exists($run, "init")) {
@@ -112,7 +111,9 @@ class App
                 $run->$m();
             } else {
                 if ($run instanceof IRun) {
-                    $run->run();
+                    $run->run($m);
+                } elseif (method_exists($run, "__call")) {
+                    $run->$m();
                 }
             }
         } else {

@@ -63,5 +63,18 @@ class Response
 
     }
 
+    public static function show($msg)
+    {
+        // TODO: Implement show() method.
+        echo $msg;
+    }
+
+    public  static function exit($msg)
+    {
+        // TODO: Implement exit() method.
+        self::show($msg);
+        exit;
+    }
+
 
 }
