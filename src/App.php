@@ -139,7 +139,7 @@ class App
         if (is_string($irun) && class_exists($irun)) {
             $tmp = new $irun();
             if ($tmp instanceof IRun) {
-                return $tmp->run();
+                return $tmp->run(null);
             }
         } else if (is_callable($irun)) {
             return $irun();
