@@ -38,6 +38,8 @@ class App
 
         if ($configOrFilePath && file_exists($config_file = $configOrFilePath)) {
             $config = json_decode(file_get_contents($configOrFilePath), true);
+        } else if (is_array($configOrFilePath)) {
+            $config = $configOrFilePath;
         } else
             $config = [];
 
