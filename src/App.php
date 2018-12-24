@@ -2,6 +2,7 @@
 namespace epii\server;
 
 
+use epii\server\i\IArgsKeys;
 use epii\server\i\IRun;
 
 
@@ -13,7 +14,7 @@ use epii\server\i\IRun;
  */
 class App
 {
-    private $args = null;
+
 
     private $init_fun = [];
 
@@ -26,23 +27,22 @@ class App
 
     public function setBaseNameSpace($base_name)
     {
-        $this->base_namespace = $base_name;
+        $this->base_namespace = trim($base_name, "\\");
         return $this;
     }
 
     public function __construct($configOrFilePath = null)
     {
 
+        Args::cli_parse();
 
         if ($configOrFilePath && file_exists($config_file = $configOrFilePath)) {
             $config = json_decode(file_get_contents($configOrFilePath), true);
         } else
             $config = [];
 
-
         Args::setConfig($config);
 
-        $this->args = new Args();
 
     }
 
@@ -70,6 +70,7 @@ class App
 
     public function run($app = null)
     {
+
         if ($app === null) {
 
             if ($app = Args::params("a")) {
@@ -80,7 +81,7 @@ class App
                 $app = "index";
             }
             if ($app) {
-                $config = $this->args->getConfigVal("app");
+                $config = Args::configVal("app");
 
                 if (isset($config[$app])) {
                     $app = $config[$app];
@@ -103,17 +104,23 @@ class App
 
         if (is_string($app) && (class_exists($app) || class_exists($app = $this->base_namespace . "\\" . $app))) {
             $run = new $app();
-            $this->beforRun($run);
+
+            if ($run instanceof IArgsKeys) {
+                Args::setKeysForArgValues($run->keysForArgValues());
+
+            }
+
+            $this->beforRun();
             if (method_exists($run, "init")) {
                 $run->init();
             }
             if (method_exists($run, $m)) {
-                $run->$m();
+                return $run->$m();
             } else {
                 if ($run instanceof IRun) {
-                    $run->run($m);
+                    return $run->run();
                 } elseif (method_exists($run, "__call")) {
-                    $run->$m();
+                    return $run->$m();
                 }
             }
         } else {
@@ -124,7 +131,7 @@ class App
         return null;
     }
 
-    private function beforRun($app = null)
+    private function beforRun()
     {
 
         array_map(function ($irun) {
@@ -139,7 +146,7 @@ class App
         if (is_string($irun) && class_exists($irun)) {
             $tmp = new $irun();
             if ($tmp instanceof IRun) {
-                return $tmp->run(null);
+                return $tmp->run();
             }
         } else if (is_callable($irun)) {
             return $irun();
