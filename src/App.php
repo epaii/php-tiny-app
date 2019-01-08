@@ -104,6 +104,9 @@ class App
         }
 
 
+        $html = "";
+
+
         if (is_string($app) && (class_exists($app) || class_exists($app = $this->base_namespace . "\\" . $app))) {
             $run = new $app();
 
@@ -117,21 +120,25 @@ class App
                 $run->init();
             }
             if (method_exists($run, $m)) {
-                return $run->$m();
+                $html = $run->$m();
             } else {
                 if ($run instanceof IRun) {
-                    return $run->run();
+                    $html = $run->run();
                 } elseif (method_exists($run, "__call")) {
-                    return $run->$m();
+                    $html = $run->$m();
                 }
             }
         } else {
             $this->beforRun();
-            return $this->init_one_run($app);
+            $html = $this->init_one_run($app);
         }
 
-        return null;
+        if ($html) {
+            Response::show($html);
+        }
+        return ;
     }
+
 
     private function beforRun()
     {
