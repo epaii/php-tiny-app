@@ -38,14 +38,14 @@ class App
 
     public function setBaseNameSpace(...$base_name)
     {
-        $this->name_space_pre = array_merge($this->name_space_pre,$base_name);
+        $this->name_space_pre = array_merge($this->name_space_pre, $base_name);
 
         return $this;
     }
 
     public function setDisableNameSpace(...$ban_name)
     {
-        $this->forbid_name_space_pre = array_merge($this->forbid_name_space_pre ,$ban_name);;
+        $this->forbid_name_space_pre = array_merge($this->forbid_name_space_pre, $ban_name);;
         return $this;
     }
 
@@ -141,14 +141,12 @@ class App
             $app_o = $app;
 
 
-
-            $name_list = array_merge(array_unique($this->name_space_pre),["","app"]);
-
+            $name_list = array_merge(array_unique($this->name_space_pre), ["", "app"]);
 
 
             foreach ($name_list as $item) {
                 $item = rtrim($item, "\\");
-                $app = $item . "\\".$app_o;
+                $app = $item . "\\" . $app_o;
                 if (class_exists($app)) {
                     $find = true;
                     break;
@@ -159,13 +157,25 @@ class App
                 echo "class wrong!";
                 exit;
             }
-            if ($this->forbid_name_space_pre)
-            foreach ($this->forbid_name_space_pre as $item) {
+            $find = false;
+            foreach ($name_list as $item) {
                 if (stripos($app, $item) === 0) {
-                    echo "class forbid!";
-                    exit;
+                    $find = true;
+
                 }
             }
+            if (!$find) {
+                echo "class over!";
+                exit;
+            }
+
+            if ($this->forbid_name_space_pre)
+                foreach ($this->forbid_name_space_pre as $item) {
+                    if (stripos($app, $item) === 0) {
+                        echo "class forbid!";
+                        exit;
+                    }
+                }
 
             $run = new $app();
             $this->runner_object = $run;
