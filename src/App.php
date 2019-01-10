@@ -132,25 +132,29 @@ class App
 
             }
 
+
+            if (method_exists($run, $m)) {
+                $this->runner_method = $m;
+            } else {
+                if ($run instanceof IRun) {
+                    $this->runner_method = "run";
+                } elseif (method_exists($run, "__call")) {
+                    $this->runner_method = $m;
+                }
+            }
+
             $this->beforRun();
             if (method_exists($run, "init")) {
                 $run->init();
             }
-            if (method_exists($run, $m)) {
-                $this->runner_method = $m;
-                $html = $run->$m();
-            } else {
-                if ($run instanceof IRun) {
-                    $this->runner_method = "run";
-                    $html = $run->run();
-                } elseif (method_exists($run, "__call")) {
-                    $this->runner_method = "__call";
-                    $html = $run->$m();
-                }
-            }
+            if ($this->runner_method)
+                $html = $run->{$this->runner_method}();
+
         } else {
-            $this->beforRun();
             $this->runner_object = $app;
+
+            $this->beforRun();
+
             $html = $this->init_one_run($app);
         }
 
