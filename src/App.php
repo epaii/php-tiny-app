@@ -122,6 +122,7 @@ class App
         $html = "";
 
 
+
         if (is_string($app) && (class_exists($app) || class_exists($app = $this->base_namespace . "\\" . $app))) {
 
             $run = new $app();
