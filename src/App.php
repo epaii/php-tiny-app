@@ -20,8 +20,9 @@ class App
     private static $_app = null;
     private $runner_object = null;
     private $runner_method = null;
-    private $name_space_pre = ["", "app"];
-    private $forbid_name_space_pre = null;
+    private $name_space_pre = [];
+    private $forbid_name_space_pre = [];
+
 
     public static function getAppRoot()
     {
@@ -37,15 +38,14 @@ class App
 
     public function setBaseNameSpace(...$base_name)
     {
-        $this->name_space_pre = array_unshift(array_push($base_name, "app"), "");
+        $this->name_space_pre = array_merge($this->name_space_pre,$base_name);
 
         return $this;
     }
 
     public function setDisableNameSpace(...$ban_name)
     {
-        $this->forbid_name_space_pre = $ban_name;
-
+        $this->forbid_name_space_pre = array_merge($this->forbid_name_space_pre ,$ban_name);;
         return $this;
     }
 
@@ -139,7 +139,14 @@ class App
             $find = false;
 
             $app_o = $app;
-            foreach ($this->name_space_pre as $item) {
+
+
+
+            $name_list = array_merge(array_unique($this->name_space_pre),["","app"]);
+
+
+
+            foreach ($name_list as $item) {
                 $item = rtrim($item, "\\");
                 $app = $item . "\\".$app_o;
                 if (class_exists($app)) {
