@@ -20,6 +20,8 @@ class App
     private static $_app = null;
     private $runner_object = null;
     private $runner_method = null;
+    private $name_space_pre = ["", "app"];
+    private $forbid_name_space_pre = null;
 
     public static function getAppRoot()
     {
@@ -32,11 +34,18 @@ class App
         return self::$_app;
     }
 
-    private $base_namespace = "app";
 
-    public function setBaseNameSpace($base_name)
+    public function setBaseNameSpace(...$base_name)
     {
-        $this->base_namespace = trim($base_name, "\\");
+        $this->name_space_pre = array_unshift(array_push($base_name, "app"), "");
+
+        return $this;
+    }
+
+    public function setDisableNameSpace(...$ban_name)
+    {
+        $this->forbid_name_space_pre = $ban_name;
+
         return $this;
     }
 
@@ -44,6 +53,8 @@ class App
     {
 
         self::$_app = $this;
+
+
         Args::cli_parse();
 
         if ($configOrFilePath && file_exists($config_file = $configOrFilePath)) {
@@ -122,8 +133,32 @@ class App
         $html = "";
 
 
+        if (is_string($app)) {
 
-        if (is_string($app) && (class_exists($app) || class_exists($app = $this->base_namespace . "\\" . $app))) {
+
+            $find = false;
+
+            $app_o = $app;
+            foreach ($this->name_space_pre as $item) {
+                $item = rtrim($item, "\\");
+                $app = $item . "\\".$app_o;
+                if (class_exists($app)) {
+                    $find = true;
+                    break;
+                }
+            }
+
+            if (!$find) {
+                echo "class wrong!";
+                exit;
+            }
+            if ($this->forbid_name_space_pre)
+            foreach ($this->forbid_name_space_pre as $item) {
+                if (stripos($app, $item) === 0) {
+                    echo "class forbid!";
+                    exit;
+                }
+            }
 
             $run = new $app();
             $this->runner_object = $run;
