@@ -146,7 +146,11 @@ class App
 
             foreach ($name_list as $item) {
                 $item = rtrim($item, "\\");
+                if ($item)
                 $app = $item . "\\" . $app_o;
+                else{
+                    $app =   $app_o;
+                }
                 if (class_exists($app)) {
                     $find = true;
                     break;
@@ -159,11 +163,12 @@ class App
             }
             $find = false;
             foreach ($name_list as $item) {
-                if (stripos($app, $item) === 0) {
-                    $find = true;
 
+                if ($item && stripos($app, $item."\\") === 0) {
+                    $find = true;
                 }
             }
+
             if (!$find) {
                 echo "class over!";
                 exit;
