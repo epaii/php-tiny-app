@@ -17,10 +17,19 @@ class App
 
 
     private $init_fun = [];
+    private static $_app = null;
+    private $runner_object = null;
+    private $runner_method = null;
 
     public static function getAppRoot()
     {
         return pathinfo($_SERVER["PHP_SELF"], PATHINFO_DIRNAME);
+    }
+
+    public static function getInstance()
+    {
+        if (!self::$_app) new static();
+        return self::$_app;
     }
 
     private $base_namespace = "app";
@@ -34,6 +43,7 @@ class App
     public function __construct($configOrFilePath = null)
     {
 
+        self::$_app = $this;
         Args::cli_parse();
 
         if ($configOrFilePath && file_exists($config_file = $configOrFilePath)) {
@@ -67,6 +77,11 @@ class App
             }
         }
         return $this;
+    }
+
+    public function getRunner()
+    {
+        return [$this->runner_object, $this->runner_method];
     }
 
 
@@ -108,7 +123,9 @@ class App
 
 
         if (is_string($app) && (class_exists($app) || class_exists($app = $this->base_namespace . "\\" . $app))) {
+
             $run = new $app();
+            $this->runner_object = $run;
 
             if ($run instanceof IArgsKeys) {
                 Args::setKeysForArgValues($run->keysForArgValues());
@@ -120,23 +137,27 @@ class App
                 $run->init();
             }
             if (method_exists($run, $m)) {
+                $this->runner_method = $m;
                 $html = $run->$m();
             } else {
                 if ($run instanceof IRun) {
+                    $this->runner_method = "run";
                     $html = $run->run();
                 } elseif (method_exists($run, "__call")) {
+                    $this->runner_method = "__call";
                     $html = $run->$m();
                 }
             }
         } else {
             $this->beforRun();
+            $this->runner_object = $app;
             $html = $this->init_one_run($app);
         }
 
         if ($html) {
             Response::show($html);
         }
-        return ;
+        return;
     }
 
 
