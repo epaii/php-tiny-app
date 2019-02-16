@@ -28,7 +28,10 @@ class App
     {
         return pathinfo($_SERVER["PHP_SELF"], PATHINFO_DIRNAME);
     }
-
+    public static function getAppRootDir()
+    {
+        return pathinfo($_SERVER["SCRIPT_FILENAME"], PATHINFO_DIRNAME);
+    }
     public static function getInstance()
     {
         if (!self::$_app) new static();
