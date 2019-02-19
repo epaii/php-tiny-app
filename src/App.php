@@ -1,4 +1,5 @@
 <?php
+
 namespace epii\server;
 
 
@@ -28,10 +29,12 @@ class App
     {
         return pathinfo($_SERVER["PHP_SELF"], PATHINFO_DIRNAME);
     }
+
     public static function getAppRootDir()
     {
         return pathinfo($_SERVER["SCRIPT_FILENAME"], PATHINFO_DIRNAME);
     }
+
     public static function getInstance()
     {
         if (!self::$_app) new static();
@@ -119,6 +122,7 @@ class App
 
                 } else {
                     $app = str_replace(".", "\\", $app);
+                    $app = str_replace("/", "@", $app);
                 }
             }
         }
@@ -150,9 +154,9 @@ class App
             foreach ($name_list as $item) {
                 $item = rtrim($item, "\\");
                 if ($item)
-                $app = $item . "\\" . $app_o;
-                else{
-                    $app =   $app_o;
+                    $app = $item . "\\" . $app_o;
+                else {
+                    $app = $app_o;
                 }
                 if (class_exists($app)) {
                     $find = true;
@@ -167,7 +171,7 @@ class App
             $find = false;
             foreach ($name_list as $item) {
 
-                if ($item && stripos($app, $item."\\") === 0) {
+                if ($item && stripos($app, $item . "\\") === 0) {
                     $find = true;
                 }
             }
