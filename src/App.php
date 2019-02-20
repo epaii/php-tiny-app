@@ -189,12 +189,15 @@ class App
                     }
                 }
 
+
+
+            $this->beforRun();
+
             $run = new $app();
             $this->runner_object = $run;
 
             if ($run instanceof IArgsKeys) {
                 Args::setKeysForArgValues($run->keysForArgValues());
-
             }
 
 
@@ -208,7 +211,7 @@ class App
                 }
             }
 
-            $this->beforRun();
+
             if (method_exists($run, "init")) {
                 $run->init();
             }
