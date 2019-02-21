@@ -80,6 +80,12 @@ class App
         $this->init_fun[] = $irun;
     }
 
+    protected function init_unshift($irun)
+    {
+        array_unshift($this->init_fun, $irun);
+        return $this;
+    }
+
     public function init(...$Iruns)
     {
         if (count($Iruns) > 0) {
