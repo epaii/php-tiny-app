@@ -21,15 +21,17 @@ abstract class api
 
     public function init()
     {
+        $auth_bool = true;
         $no = $this->getNoNeedAuth();
         if (count($no) > 0) {
             $m = \epii\server\App::getInstance()->getRunner()[1];
-            if (!in_array($m, $no)) {
-                if (!$this->doAuth()) {
-                    $this->error("授权失败");
-                }
+            if (in_array($m, $no)) {
+                $auth_bool = false;
 
             }
+        }
+        if ($auth_bool && !$this->doAuth()) {
+            $this->error("授权失败");
         }
 
     }
