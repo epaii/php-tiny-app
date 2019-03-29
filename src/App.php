@@ -4,7 +4,9 @@ namespace epii\server;
 
 
 use epii\server\i\IArgsKeys;
+use epii\server\i\IParamCheck;
 use epii\server\i\IRun;
+use think\Db;
 
 
 /**
@@ -35,9 +37,9 @@ class App
         return pathinfo($_SERVER["SCRIPT_FILENAME"], PATHINFO_DIRNAME);
     }
 
-    public static function getInstance()
+    public static function getInstance($configOrFilePath = null)
     {
-        if (!self::$_app) new static();
+        if (!self::$_app) new static($configOrFilePath);
         return self::$_app;
     }
 
@@ -196,7 +198,6 @@ class App
                 }
 
 
-
             $this->beforRun();
 
             $run = new $app();
@@ -206,6 +207,7 @@ class App
                 Args::setKeysForArgValues($run->keysForArgValues());
             }
 
+            $this->param_check($run);
 
             if (method_exists($run, $m)) {
                 $this->runner_method = $m;
@@ -238,6 +240,24 @@ class App
         return;
     }
 
+
+    private function param_check($run)
+    {
+        if ($run instanceof IParamCheck) {
+            $must_parame = $run->param_get_required();
+            $e_param = [];
+            if ($must_parame) {
+                foreach ($must_parame as $value) {
+                    if (Args::params($value) === null) {
+                        $e_param[] = $value;
+                    }
+                }
+            }
+            if ($ok = (count($e_param) > 0)) {
+                $run->param_on_result($ok, $e_param);
+            }
+        }
+    }
 
     private function beforRun()
     {
