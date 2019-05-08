@@ -11,6 +11,18 @@ namespace epii\server;
  */
 class Tools
 {
+
+    public static function mkdir($dir, $qx = 0777)
+    {
+        if (!is_dir($dir)) {
+            $old = umask(0);
+            mkdir($dir, $qx, true);
+            umask($old);
+        }
+
+
+    }
+
     public static function get_current_url()
     {
         if (!isset($_SERVER['REQUEST_URI'])) return "";
@@ -42,7 +54,6 @@ class Tools
         }
         return $current_url . (substr($_SERVER["SCRIPT_NAME"], 0, strrpos($_SERVER["SCRIPT_NAME"], "/")));
     }
-
 
 
     private static $vendor_dir = null;
