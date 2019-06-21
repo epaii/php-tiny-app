@@ -32,7 +32,10 @@ class Tools
     public static function get_web_root()
     {
         if (!isset($_SERVER['REQUEST_URI'])) return "";
-        return self::get_web_http_domain() . (isset($_SERVER["REQUEST_URI"]) ? str_replace("//", "/", substr($path = parse_url("http://www.ba.ldi/" . $_SERVER["REQUEST_URI"])["path"], 0, strripos($path, "/"))) : "");
+        return self::get_web_http_domain() . (isset($_SERVER["REQUEST_URI"]) ?
+                str_replace("//","/",pathinfo(parse_url("http://www.ba.ldi/" . $_SERVER["REQUEST_URI"])["path"])["dirname"]."/")
+                : ""
+            );
     }
 
     public static function get_web_http_domain()
