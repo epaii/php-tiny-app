@@ -48,6 +48,19 @@ class Response
     }
 
 
+    public static function createResult($code, $msg, $data = null)
+    {
+        $result = [
+            'code' => $code,
+            'msg' => $msg,
+            'time' => time(),
+            'data' => $data,
+        ];
+
+        return json_encode($result, JSON_UNESCAPED_UNICODE);
+    }
+
+
     private static function result($msg, $data = null, $code = 0, $type = null, array $header = [])
     {
         $result = [
@@ -69,7 +82,7 @@ class Response
         echo $msg;
     }
 
-    public  static function exit($msg)
+    public static function exit($msg)
     {
         // TODO: Implement exit() method.
         self::show($msg);
