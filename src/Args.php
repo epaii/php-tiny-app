@@ -25,8 +25,14 @@ class Args
 
     private static $iscli = null;
 
+
     public static function is_cli()
     {
+
+        global $argv;
+        if ($argv) {
+            return true;
+        }
         if (self::$iscli === null) {
             self::$iscli = preg_match("/cli/i", php_sapi_name()) ? true : false;
         }
@@ -96,11 +102,18 @@ class Args
     public static function setValue($config, $value = null)
     {
         self::setConfig($config, $value);
+
     }
 
 
     public static function params($offset)
     {
+        $out = isset(self::$configs[$offset]) ? self::$configs[$offset] : null;
+
+        if ($out !== null) {
+            return $out;
+        }
+
 
         if (self::is_cli()) {
 
@@ -108,13 +121,19 @@ class Args
                 return self::$argsArr[$offset];
             } else if (isset(self::$optsArr[$offset])) {
                 return self::$optsArr[$offset];
-            } else if (isset(self::$configs[$offset])) {
-                return self::$configs[$offset];
             }
-            return null;
+
+        } else {
+            $out = isset($_REQUEST[$offset]) ? $_REQUEST[$offset] : (isset($_SESSION[$offset]) ? $_SESSION[$offset] : null);
+
+            if ($out !== null) {
+                return $out;
+            }
+
+
         }
 
-        return isset($_REQUEST[$offset]) ? $_REQUEST[$offset] : (isset($_SESSION[$offset]) ? $_SESSION[$offset] : (isset(self::$configs[$offset]) ? self::$configs[$offset] : null));
+        return null;
     }
 
     public static function val($key)
