@@ -25,10 +25,17 @@ class Args
 
     private static $iscli = null;
 
+    private static $filters = [];
+
+
+    public static function setFilter(callable ...$filter)
+    {
+        self::$filters = array_merge(self::$filters, $filter);
+    }
+
 
     public static function is_cli()
     {
-
         global $argv;
         if ($argv) {
             return true;
@@ -47,22 +54,26 @@ class Args
         }
     }
 
+    public static function listParams(...$keys)
+    {
+        $out = [];
+        foreach ($keys as $key) {
+            $out[] = self::params($key);
+        }
+        return $out;
+    }
+
 
     /**
      * 获取选项值
      * @param string|NULL $opt
      * @return array|string|NULL
      */
-    public static function optVal($opt = NULL)
+    public static function optVal($index = NULL, $default = null)
     {
 
+        return self::__value_from_array(self::$optsArr, $index, $default);
 
-        if (is_null($opt)) {
-            return self::$optsArr;
-        } else if (isset(self::$optsArr[$opt])) {
-            return self::$optsArr[$opt];
-        }
-        return null;
     }
 
 
@@ -71,16 +82,10 @@ class Args
      * @param integer|NULL $index
      * @return array|string|NULL
      */
-    public static function argVal($index = NULL)
+    public static function argVal($index = NULL, $default = null)
     {
 
-
-        if (is_null($index)) {
-            return self::$argsArr;
-        } else if (isset(self::$argsArr[$index])) {
-            return self::$argsArr[$index];
-        }
-        return null;
+        return self::__value_from_array(self::$argsArr, $index, $default);
     }
 
 
@@ -106,109 +111,135 @@ class Args
     }
 
 
-    public static function params($offset)
+    public static function params($index = null, $default = null)
     {
-        $out = isset(self::$configs[$offset]) ? self::$configs[$offset] : null;
 
-        if ($out !== null) {
-            return $out;
-        }
-
-
+        $all = [];
+        $all = array_merge($all, self::$configs);
         if (self::is_cli()) {
-
-            if (isset(self::$argsArr[$offset])) {
-                return self::$argsArr[$offset];
-            } else if (isset(self::$optsArr[$offset])) {
-                return self::$optsArr[$offset];
-            }
-
+            $all = array_merge($all, self::$argsArr, self::$optsArr);
         } else {
-            $out = isset($_REQUEST[$offset]) ? $_REQUEST[$offset] : (isset($_SESSION[$offset]) ? $_SESSION[$offset] : null);
+            $all = array_merge($all, isset($_SESSION) && $_SESSION ? $_SESSION : [], isset($_COOKIE) && $_COOKIE ? $_COOKIE : [], $_REQUEST ? $_REQUEST : []);
+        }
 
-            if ($out !== null) {
-                return $out;
+        return self::__value_from_array($all, $index, $default);
+
+    }
+
+    public static function val($key, $default = null)
+    {
+        return self::params($key, $default);
+    }
+
+    public static function configVal($index = NULL, $default = null)
+    {
+
+        return self::__value_from_array(self::$configs, $index, $default);
+    }
+
+    /**
+     * 获取命令行参数值
+     * @param integer|NULL $index
+     * @return array|string|NULL
+     */
+    public static function getVal($index = NULL, $default = null)
+    {
+        return self::__value_from_array($_GET, $index, $default);
+    }
+
+
+    public static function postVal($index = NULL, $default = null)
+    {
+        if (!$_POST) $_POST = [];
+        return self::__value_from_array($_POST, $index, $default);
+
+    }
+
+    /**
+     * 获取命令行参数值
+     * @param integer|NULL $index
+     * @return array|string|NULL
+     */
+    public static function cookieVal($index = NULL, $default = null)
+    {
+        return self::__value_from_array($_COOKIE, $index, $default);
+    }
+
+    /**
+     * 获取命令行参数值
+     * @param integer|NULL $index
+     * @return array|string|NULL
+     */
+    public static function sessionVal($index = NULL, $default = null)
+    {
+        return self::__value_from_array($_SESSION, $index, $default);
+    }
+
+
+    private static function __value_from_array(&$data, $index = NULL, $default = null)
+    {
+
+        if (is_null($index)) {
+            return $data;
+        } else {
+
+
+            $formate = null;
+            if (is_string($index)) {
+                $tmp = explode("/", $index);
+                $index = $tmp[0];
+                if (isset($tmp[1])) {
+                    $formate = array_slice($tmp, 1);
+                }
+                $tmp = explode("|", $index);
+                $index = $tmp[0];
+                if (isset($tmp[1])) {
+                    $default = $tmp[1];
+                }
             }
 
 
+            if (isset($data[$index])) {
+                $value = $data[$index];
+            } else {
+                if ($formate && in_array(1, $formate)) {
+                    Console::error($default ? $default : $index . "不能为空");
+                }
+                $value = $default;
+            }
+
+
+            if (is_string($value)) {
+                $value = trim($value);
+                if (!get_magic_quotes_gpc()) {
+                    if (function_exists('addslashes')) {
+                        $value = addslashes($value);
+                    }
+
+                    foreach (self::$filters as $filter) {
+                        $value = $filter($value);
+                    }
+
+
+                    if ($formate) {
+                        if (in_array("d", $formate)) {
+                            $value = (int)$value;
+                        } else if (in_array("a", $formate) || in_array("json", $formate)) {
+                            $value = json_decode($value, true);
+                        } else if (in_array("b", $formate)) {
+                            $value = $value ? true : false;
+                        } else if (in_array("f", $formate)) {
+                            $value = floatval($value);
+                        }
+                    }
+
+                }
+
+            }
+            return $value;
         }
 
-        return null;
-    }
 
-    public static function val($key)
-    {
-        return self::params($key);
-    }
-
-    public static function configVal($key = NULL)
-    {
-        if (is_null($key)) {
-            return self::$configs;
-        } else if (isset(self::$configs[$key])) {
-            return self::$configs[$key];
-        }
-        return null;
-    }
-
-    /**
-     * 获取命令行参数值
-     * @param integer|NULL $index
-     * @return array|string|NULL
-     */
-    public static function getVal($index = NULL)
-    {
-        if (is_null($index)) {
-            return $_GET;
-        } else if (isset($_GET[$index])) {
-            return $_GET[$index];
-        }
-        return null;
-    }
-
-    /**
-     * 获取命令行参数值
-     * @param integer|NULL $index
-     * @return array|string|NULL
-     */
-    public static function postVal($index = NULL)
-    {
-        if (is_null($index)) {
-            return $_POST;
-        } else if (isset($_POST[$index])) {
-            return $_POST[$index];
-        }
-        return null;
-    }
-
-    /**
-     * 获取命令行参数值
-     * @param integer|NULL $index
-     * @return array|string|NULL
-     */
-    public static function cookieVal($index = NULL)
-    {
-        if (is_null($index)) {
-            return $_COOKIE;
-        } else if (isset($_COOKIE[$index])) {
-            return $_COOKIE[$index];
-        }
-        return null;
-    }
-
-    /**
-     * 获取命令行参数值
-     * @param integer|NULL $index
-     * @return array|string|NULL
-     */
-    public static function sessionVal($index = NULL)
-    {
-        if (is_null($index)) {
-            return $_SESSION;
-        } else if (isset($_SESSION[$index])) {
-            return $_SESSION[$index];
-        }
-        return null;
     }
 
 

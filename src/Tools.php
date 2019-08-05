@@ -32,10 +32,15 @@ class Tools
     public static function get_web_root()
     {
         if (!isset($_SERVER['REQUEST_URI'])) return "";
-        return self::get_web_http_domain() . (isset($_SERVER["REQUEST_URI"]) ?
-                str_replace("//","/",pathinfo(parse_url("http://www.ba.ldi/" . $_SERVER["REQUEST_URI"])["path"])["dirname"]."/")
-                : ""
-            );
+
+        $tmp = parse_url("http://www.ba.ldi/" . $_SERVER["REQUEST_URI"])["path"];
+
+        if (strripos($tmp, "/") != (strlen($tmp) - 1)) {
+            $tmp = pathinfo($tmp, PATHINFO_DIRNAME);
+        }
+        $uri = implode("/", array_filter(explode("/", $tmp)));
+
+        return self::get_web_http_domain() . $uri . "/";
     }
 
     public static function get_web_http_domain()
@@ -55,7 +60,20 @@ class Tools
         } else {
             $current_url .= $_SERVER['HTTP_HOST'];
         }
-        return $current_url . (substr($_SERVER["SCRIPT_NAME"], 0, strrpos($_SERVER["SCRIPT_NAME"], "/")));
+
+
+        return $current_url;// . (substr($_SERVER["SCRIPT_NAME"], 0, strrpos($_SERVER["SCRIPT_NAME"], "/")));
+    }
+
+
+    public static function getRootFileDirectory()
+    {
+        return pathinfo($_SERVER["SCRIPT_FILENAME"], PATHINFO_DIRNAME);
+    }
+
+    public static function getRuntimeDirectory()
+    {
+        return self::getVendorDir() . "/../runtime";
     }
 
 
