@@ -224,7 +224,7 @@ class Args
                     if ($formate) {
                         if (in_array("d", $formate)) {
                             $value = (int)$value;
-                        } else if (in_array("a", $formate) || in_array("json", $formate)) {
+                        } else if (in_array("j", $formate) || in_array("json", $formate)) {
                             $value = json_decode($value, true);
                         } else if (in_array("b", $formate)) {
                             $value = $value ? true : false;
