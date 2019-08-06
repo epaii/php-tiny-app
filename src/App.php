@@ -8,7 +8,6 @@ use epii\server\i\IArgsKeys;
 use epii\server\i\IRun;
 
 
-
 /**
  * Created by PhpStorm.
  * User: mrren
@@ -25,6 +24,7 @@ class App
     private $runner_method = null;
     private $name_space_pre = [];
     private $forbid_name_space_pre = [];
+    private static $singleton_init_array = [];
 
 
     public static function getAppRoot()
@@ -208,7 +208,6 @@ class App
             }
 
 
-
             if (method_exists($run, $m)) {
                 $this->runner_method = $m;
             } else {
@@ -231,7 +230,7 @@ class App
 
             $this->beforRun();
 
-            $html = $this->init_one_run($app);
+            $html = self::init_one_run($app);
         }
 
         if ($html) {
@@ -241,20 +240,20 @@ class App
     }
 
 
-
     private function beforRun()
     {
 
         array_map(function ($irun) {
 
-            $this->init_one_run($irun);
+            self::init_one_run($irun);
         }, $this->init_fun);
 
     }
 
-    private function init_one_run($irun)
+    private static function init_one_run($irun)
     {
         if (is_string($irun) && class_exists($irun)) {
+            self::$singleton_init_array[$irun] = 1;
             $tmp = new $irun();
             if ($tmp instanceof IRun) {
                 return $tmp->run();
@@ -264,4 +263,14 @@ class App
         }
         return null;
     }
+
+    public static function singletonInit(string $classname)
+    {
+        if (!isset(self::$singleton_init_array[$classname])) {
+            self::init_one_run($classname);
+
+        }
+    }
+
+
 }
