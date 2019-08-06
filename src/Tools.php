@@ -45,6 +45,7 @@ class Tools
 
     public static function get_web_http_domain()
     {
+        if (!isset($_SERVER['HTTP_HOST'])) return "";
         $current_url = 'http://';
         if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') {
             $current_url = 'https://';
@@ -68,6 +69,7 @@ class Tools
 
     public static function getRootFileDirectory()
     {
+
         return pathinfo($_SERVER["SCRIPT_FILENAME"], PATHINFO_DIRNAME);
     }
 

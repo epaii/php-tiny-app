@@ -70,7 +70,14 @@ class Response
             'data' => $data,
         ];
 
-        echo json_encode($result, JSON_UNESCAPED_UNICODE);
+
+        $string = json_encode($result, JSON_UNESCAPED_UNICODE);
+        if ($callback = Args::getVal("callback"))
+            echo $callback . "(" . $string . ");";
+        else {
+            
+            echo $string;
+        }
         exit;
 
 
