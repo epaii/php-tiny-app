@@ -211,29 +211,25 @@ class Args
 
             if (is_string($value)) {
                 $value = trim($value);
-                if (!get_magic_quotes_gpc()) {
-                    if (function_exists('addslashes')) {
-                        $value = addslashes($value);
-                    }
-
-                    foreach (self::$filters as $filter) {
-                        $value = $filter($value);
-                    }
 
 
-                    if ($formate) {
-                        if (in_array("d", $formate)) {
-                            $value = (int)$value;
-                        } else if (in_array("j", $formate) || in_array("json", $formate)) {
-                            $value = json_decode($value, true);
-                        } else if (in_array("b", $formate)) {
-                            $value = $value ? true : false;
-                        } else if (in_array("f", $formate)) {
-                            $value = floatval($value);
-                        }
-                    }
-
+                foreach (self::$filters as $filter) {
+                    $value = $filter($value);
                 }
+
+
+                if ($formate) {
+                    if (in_array("d", $formate)) {
+                        $value = (int)$value;
+                    } else if (in_array("j", $formate) || in_array("json", $formate)) {
+                        $value = json_decode($value, true);
+                    } else if (in_array("b", $formate)) {
+                        $value = $value ? true : false;
+                    } else if (in_array("f", $formate)) {
+                        $value = floatval($value);
+                    }
+                }
+
 
             }
             return $value;
