@@ -9,7 +9,6 @@
 namespace epii\server;
 
 
-
 abstract class api
 {
     protected function getNoNeedAuth(): array
@@ -25,7 +24,7 @@ abstract class api
         $no = $this->getNoNeedAuth();
         if (count($no) > 0) {
             $m = \epii\server\App::getInstance()->getRunner()[1];
-            if (in_array($m, $no)) {
+            if (in_array($m, $no) || ((count($no) == 1) && ($no[0] == "..."))) {
                 $auth_bool = false;
 
             }
