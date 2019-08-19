@@ -196,16 +196,18 @@ class Args
                     $default = $tmp[1];
                 }
             }
+            $must_has = $formate && in_array(1, $formate);
 
-            if (isset($data[$index]) && strlen($data[$index] . "") > 0) {
+            if (isset($data[$index])) {
                 $value = $data[$index];
+                $must_err = $must_has && $value;
             } else {
-                if ($formate && in_array(1, $formate)) {
-                    Console::error($default ? $default : $index . "不能为空");
-                }
+                $must_err = $must_has;
                 $value = $default;
             }
-
+            if ($must_err) {
+                Console::error($default ? $default : $index . "不能为空");
+            }
 
             if (is_string($value)) {
                 $value = trim($value);
