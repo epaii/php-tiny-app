@@ -183,7 +183,6 @@ class Args
             return $data;
         } else {
 
-
             $formate = null;
             if (is_string($index)) {
                 $tmp = explode("/", $index);
@@ -198,8 +197,7 @@ class Args
                 }
             }
 
-
-            if (isset($data[$index])) {
+            if (isset($data[$index]) && strlen($data[$index] . "") > 0) {
                 $value = $data[$index];
             } else {
                 if ($formate && in_array(1, $formate)) {
