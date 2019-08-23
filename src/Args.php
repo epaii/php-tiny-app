@@ -200,7 +200,7 @@ class Args
 
             if (isset($data[$index])) {
                 $value = $data[$index];
-                $must_err = $must_has && $value;
+                $must_err = $must_has && !$value;
             } else {
                 $must_err = $must_has;
                 $value = $default;
