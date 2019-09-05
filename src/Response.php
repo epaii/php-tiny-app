@@ -9,9 +9,25 @@
 namespace epii\server;
 
 
+use epii\server\handler\JsonResponseHandler;
+use epii\server\i\IResponseHandler;
+
 class Response
 {
 
+
+    /**
+     * @var IResponseHandler
+     */
+    private static $responseHandler = null;
+
+    public static function getResponseHandler(): IResponseHandler
+    {
+        if (self::$responseHandler === null) {
+            self::$responseHandler = new JsonResponseHandler();
+        }
+        return self::$responseHandler;
+    }
 
     /**
      * 操作成功返回的数据
@@ -63,21 +79,8 @@ class Response
 
     private static function result($msg, $data = null, $code = 0, $type = null, array $header = [])
     {
-        $result = [
-            'code' => $code,
-            'msg' => $msg,
-            'time' => time(),
-            'data' => $data,
-        ];
 
-
-        $string = json_encode($result, JSON_UNESCAPED_UNICODE);
-        if ($callback = Args::getVal("callback"))
-            echo $callback . "(" . $string . ");";
-        else {
-            
-            echo $string;
-        }
+        self::getResponseHandler()->result($code, $msg, $data, $type, $header);
         exit;
 
 
@@ -94,6 +97,14 @@ class Response
         // TODO: Implement exit() method.
         self::show($msg);
         exit;
+    }
+
+    /**
+     * @param IResponseHandler $responseHandler
+     */
+    public static function setResponseHandler(IResponseHandler $responseHandler)
+    {
+        self::$responseHandler = $responseHandler;
     }
 
 
