@@ -196,14 +196,17 @@ class Args
                     $default = $tmp[1];
                 }
             }
+
             $must_has = $formate && in_array(1, $formate);
 
+            $is_default_value = false;
             if (isset($data[$index])) {
                 $value = $data[$index];
                 $must_err = $must_has && !$value;
             } else {
                 $must_err = $must_has;
                 $value = $default;
+                $is_default_value = true;
             }
             if ($must_err) {
                 Console::error($default ? $default : $index . "不能为空");
@@ -218,6 +221,7 @@ class Args
                 }
 
 
+
                 if ($formate) {
                     if (in_array("d", $formate)) {
                         $value = (int)$value;
@@ -227,6 +231,12 @@ class Args
                         $value = $value ? true : false;
                     } else if (in_array("f", $formate)) {
                         $value = floatval($value);
+                    } else if (in_array("email", $formate)) {
+                        Validator::isEmail($value,(!$is_default_value) && $default ? $default : $index . "不是有效的邮箱格式");
+                    } else if (in_array("phone", $formate)) {
+                        Validator::isPhone($value, (!$is_default_value) && $default ? $default : $index . "不是有效手机号格式");
+                    } else if (in_array("idcard", $formate)) {
+                        Validator::isIdCardNumber($value, (!$is_default_value) && $default ? $default : $index . "不是有效的身份证格式");
                     }
                 }
 
