@@ -33,6 +33,21 @@ class Args
         self::$filters = array_merge(self::$filters, $filter);
     }
 
+    public static function isPost()
+    {
+        return isset($_SERVER['REQUEST_METHOD']) && (strtoupper($_SERVER['REQUEST_METHOD']) == 'POST');
+
+    }
+
+    public static function isGet()
+    {
+        return isset($_SERVER['REQUEST_METHOD']) && (strtoupper($_SERVER['REQUEST_METHOD']) == 'GET');
+    }
+
+    public static function isAjax()
+    {
+        return isset($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest');
+    }
 
     public static function is_cli()
     {
@@ -221,7 +236,6 @@ class Args
                 }
 
 
-
                 if ($formate) {
                     if (in_array("d", $formate)) {
                         $value = (int)$value;
@@ -232,7 +246,7 @@ class Args
                     } else if (in_array("f", $formate)) {
                         $value = floatval($value);
                     } else if (in_array("email", $formate)) {
-                        Validator::isEmail($value,(!$is_default_value) && $default ? $default : $index . "不是有效的邮箱格式");
+                        Validator::isEmail($value, (!$is_default_value) && $default ? $default : $index . "不是有效的邮箱格式");
                     } else if (in_array("phone", $formate)) {
                         Validator::isPhone($value, (!$is_default_value) && $default ? $default : $index . "不是有效手机号格式");
                     } else if (in_array("idcard", $formate)) {
