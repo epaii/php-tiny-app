@@ -236,11 +236,19 @@ class Args
                 }
 
 
-                if ($formate) {
+                if ($formate && strlen($value) > 0) {
                     if (in_array("d", $formate)) {
                         $value = (int)$value;
                     } else if (in_array("j", $formate) || in_array("json", $formate)) {
                         $value = json_decode($value, true);
+                    } else if (in_array("explode", $formate )|| in_array("e", $formate)|| in_array("split", $formate)) {
+                        $value = urldecode($value);
+                        if (stripos($value, ",") !== false) {
+                            $value = explode(",", $value);
+                        } elseif (stripos($value, ";") !== false) {
+                            $value = explode(";", $value);
+                        }
+
                     } else if (in_array("b", $formate)) {
                         $value = $value ? true : false;
                     } else if (in_array("f", $formate)) {
