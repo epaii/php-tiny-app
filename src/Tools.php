@@ -13,8 +13,6 @@ class Tools
 {
 
 
-
-
     public static function mkdir($dir, $qx = 0777)
     {
         if (!is_dir($dir)) {
@@ -35,15 +33,27 @@ class Tools
     public static function get_web_root()
     {
         if (!isset($_SERVER['REQUEST_URI'])) return "";
+        $uri =  $_SERVER["REQUEST_URI"];
+        if (isset($_SERVER["SCRIPT_NAME"]))
+        {
+            $file_name = $_SERVER["SCRIPT_NAME"];
 
-        $tmp = parse_url("http://www.ba.ldi/" . $_SERVER["REQUEST_URI"])["path"];
+
+            if (($find = stripos($uri, $file_name)) !== false) {
+                $uri = substr($uri, 0,$find +1 );
+            }
+        }
+
+        $tmp = parse_url("http://www.ba.ldi/" .$uri)["path"];
 
         if (strripos($tmp, "/") != (strlen($tmp) - 1)) {
             $tmp = pathinfo($tmp, PATHINFO_DIRNAME);
         }
+
+
         $uri = implode("/", array_filter(explode("/", $tmp)));
 
-        return self::get_web_http_domain() . $uri . "/";
+        return self::get_web_http_domain() ."/". ltrim($uri,"/") . "/";
     }
 
     public static function get_web_http_domain()
@@ -59,7 +69,7 @@ class Tools
         if (!isset($_SERVER['SERVER_PORT'])) {
             $_SERVER['SERVER_PORT'] = isset($http[1]) ? $http[1] : "80";
         }
-        if ($_SERVER['SERVER_PORT'] != '80') {
+        if (!in_array($_SERVER['SERVER_PORT'], ["80", "443"])) {
             $current_url .= $_SERVER['HTTP_HOST'] . ':' . $_SERVER['SERVER_PORT'];
         } else {
             $current_url .= $_SERVER['HTTP_HOST'];
