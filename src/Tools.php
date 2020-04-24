@@ -20,8 +20,6 @@ class Tools
             mkdir($dir, $qx, true);
             umask($old);
         }
-
-
     }
 
     public static function get_current_url()
@@ -34,17 +32,22 @@ class Tools
     {
         if (!isset($_SERVER['REQUEST_URI'])) return "";
         $uri =  $_SERVER["REQUEST_URI"];
-        if (isset($_SERVER["SCRIPT_NAME"]))
-        {
+
+
+        if (isset($_SERVER["SCRIPT_NAME"])) {
             $file_name = $_SERVER["SCRIPT_NAME"];
 
+            $uri_pre = substr($file_name, 0, strrpos($file_name, "/"));
 
             if (($find = stripos($uri, $file_name)) !== false) {
-                $uri = substr($uri, 0,$find +1 );
+                $uri = substr($uri, 0, $find + 1);
+            } else {
+                $uri = "";
             }
+            $uri = $uri_pre . $uri;
         }
 
-        $tmp = parse_url("http://www.ba.ldi/" .$uri)["path"];
+        $tmp = parse_url("http://www.ba.ldi/" . $uri)["path"];
 
         if (strripos($tmp, "/") != (strlen($tmp) - 1)) {
             $tmp = pathinfo($tmp, PATHINFO_DIRNAME);
@@ -52,8 +55,9 @@ class Tools
 
 
         $uri = implode("/", array_filter(explode("/", $tmp)));
+        $uri = ltrim($uri, "/");
 
-        return self::get_web_http_domain() ."/". ltrim($uri,"/") . "/";
+        return rtrim(self::get_web_http_domain() . "/" . $uri, "/") . "/";
     }
 
     public static function get_web_http_domain()
@@ -76,7 +80,7 @@ class Tools
         }
 
 
-        return $current_url;// . (substr($_SERVER["SCRIPT_NAME"], 0, strrpos($_SERVER["SCRIPT_NAME"], "/")));
+        return $current_url; // . (substr($_SERVER["SCRIPT_NAME"], 0, strrpos($_SERVER["SCRIPT_NAME"], "/")));
     }
 
 
@@ -112,5 +116,4 @@ class Tools
         }
         return self::$vendor_dir = "";
     }
-
 }
