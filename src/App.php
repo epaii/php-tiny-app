@@ -154,7 +154,7 @@ class App
 
         if (is_string($app)) {
 
-
+            $this->beforRun();
             $find = false;
 
             $app_o = $app;
@@ -203,7 +203,7 @@ class App
                 }
 
 
-            $this->beforRun();
+           
 
             $run = new $app();
             $this->runner_object = $run;
