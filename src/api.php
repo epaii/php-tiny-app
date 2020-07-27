@@ -13,6 +13,38 @@ namespace epii\server;
 abstract class api
 {
     private $is_auth = false;
+    private $log_enable = false;
+    private $log_enable_password = "";
+    protected   function enableLog(bool $enable,$password="")
+    {   
+        $this->log_enable = $enable;
+        $this->log_enable_password=$password;
+    }
+    private function _log(){
+        if($this->log_enable){
+            $log_file = Tools::getRuntimeDirectory()."/apilogs";
+        
+            Tools::mkdir($log_file);
+            file_put_contents($log_file."/".date("Ymd").".txt","\n".Tools::get_current_url()."\n".http_build_query(Args::postVal()),FILE_APPEND);
+        }
+    }
+    public function _show_log(){
+        if(!$this->log_enable) exit;
+        if($this->log_enable_password && (Args::getVal("password")!= $this->log_enable_password))
+        {
+            return;
+        }
+        $date = Args::getVal("date");
+        if(!$date) $date = date("Ymd");
+        $log_file = Tools::getRuntimeDirectory()."/apilogs/".$date.".txt";
+        if(file_exists($log_file)){
+            if($clear =  Args::getVal("clear")){
+              echo   @unlink($log_file);
+            }else 
+            echo file_get_contents($log_file);
+        }
+        exit;
+    }
     protected function getNoNeedAuth(): array
     {
         return [];
@@ -29,6 +61,7 @@ abstract class api
     }
     public function init()
     {
+        $this->_log();
         $auth_bool = true;
         $no = $this->getNoNeedAuth();
         if (count($no) > 0) {
