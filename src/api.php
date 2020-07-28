@@ -9,12 +9,14 @@
 
 namespace epii\server;
 
+use epii\server\traits\auth;
 
 abstract class api
 {
-    private $is_auth = false;
+    use auth;
+    
     private $log_enable = false;
-    private $log_enable_password = "";
+    private $log_enable_password = "1";
     protected   function enableLog(bool $enable,$password="")
     {   
         $this->log_enable = $enable;
@@ -25,12 +27,12 @@ abstract class api
             $log_file = Tools::getRuntimeDirectory()."/apilogs";
         
             Tools::mkdir($log_file);
-            file_put_contents($log_file."/".date("Ymd").".txt","\n".Tools::get_current_url()."\n".http_build_query(Args::postVal()),FILE_APPEND);
+            file_put_contents($log_file."/".date("Ymd").".txt","\n".Tools::get_current_url()."&".http_build_query(Args::postVal()),FILE_APPEND);
         }
     }
     public function _show_log(){
         if(!$this->log_enable) exit;
-        if($this->log_enable_password && (Args::getVal("password")!= $this->log_enable_password))
+        if($this->log_enable_password && (Args::getVal("_show_log")!= $this->log_enable_password))
         {
             return;
         }
@@ -40,19 +42,30 @@ abstract class api
         if(file_exists($log_file)){
             if($clear =  Args::getVal("clear")){
               echo   @unlink($log_file);
-            }else 
-            echo file_get_contents($log_file);
+            }else {
+                $list = explode("\n", file_get_contents($log_file));
+                echo   "<html><head><script> function copy(text) {
+                    var input = document.createElement('input');
+                    input.setAttribute('readonly', 'readonly'); // 防止手机上弹出软键盘
+                    input.setAttribute('value', text);
+                    document.body.appendChild(input);
+                    // input.setSelectionRange(0, 9999);
+                    input.select();
+                    var res = document.execCommand('copy');
+                    document.body.removeChild(input);
+                    return res;
+                }</script></head><body>";
+                echo "<div><button onclick='window.location.href=window.location.href+\"&clear=1\"'>清除日志</button></div>";
+                foreach($list as $value){
+                    if(!trim($value)) continue;
+                    echo "<p>{$value} <button onclick='copy(\"{$value}\")'>复制</button></p>";
+                }
+                echo "</body></html>";
+            }
+           
         }
         exit;
     }
-    protected function getNoNeedAuth(): array
-    {
-        return [];
-    }
-    protected function onAuthFail()
-    {
-    }
-
     abstract protected function doAuth(): bool;
 
     protected function isAuth()
@@ -61,19 +74,15 @@ abstract class api
     }
     public function init()
     {
-        $this->_log();
-        $auth_bool = true;
-        $no = $this->getNoNeedAuth();
-        if (count($no) > 0) {
-            $m = \epii\server\App::getInstance()->getRunner()[1];
-            if (in_array($m, $no) || ((count($no) == 1) && ($no[0] == "..."))) {
-                $auth_bool = false;
-            }
+      
+        if(Args::params("_show_log")){
+            $this->_show_log();
+            exit;
         }
-        $this->is_auth = $this->doAuth();
-        if ($auth_bool && !$this->is_auth) {
-
-            $this->onAuthFail();
+        $this->_log();
+        if(!$this->authCheck(function(){
+            return $this->doAuth();
+        })){
             $this->error("授权失败", ["error_type" => "auth", "tip" => "授权失败"]);
         }
     }
