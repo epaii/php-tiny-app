@@ -19,6 +19,7 @@ class App
 
 
     private $init_fun = [];
+    private $init_fun_end = [];
     private static $_app = null;
     private $runner_object = null;
     public $runner_name_space_pre = null;
@@ -86,9 +87,15 @@ class App
         $this->init_fun[] = $irun;
     }
 
-    protected function init_unshift($irun)
+    public function init_unshift($irun)
     {
         array_unshift($this->init_fun, $irun);
+        return $this;
+    }
+
+    public function init_end($irun)
+    {
+        $this->init_fun_end[] = $irun;
         return $this;
     }
 
@@ -251,7 +258,7 @@ class App
         array_map(function ($irun) {
 
             self::init_one_run($irun);
-        }, $this->init_fun);
+        },  array_merge( $this->init_fun,$this->init_fun_end));
 
     }
 
