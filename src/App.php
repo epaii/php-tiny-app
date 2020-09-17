@@ -28,7 +28,7 @@ class App
     private $forbid_name_space_pre = [];
     private static $singleton_init_array = [];
 
-    public static function defaultApp($app){
+    public   function defaultApp($app){
         if (!isset($_REQUEST['app'])) {
             $_REQUEST['app'] =$app;
         }
