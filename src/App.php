@@ -2,11 +2,8 @@
 
 namespace epii\server;
 
-
 use epii\server\i\IArgsKeys;
-
 use epii\server\i\IRun;
-
 
 /**
  * Created by PhpStorm.
@@ -16,7 +13,6 @@ use epii\server\i\IRun;
  */
 class App
 {
-
 
     private $init_fun = [];
     private $init_fun_end = [];
@@ -28,9 +24,10 @@ class App
     private $forbid_name_space_pre = [];
     private static $singleton_init_array = [];
 
-    public   function defaultApp($app){
+    public function defaultApp($app)
+    {
         if (!isset($_REQUEST['app'])) {
-            $_REQUEST['app'] =$app;
+            $_REQUEST['app'] = $app;
         }
         return $this;
     }
@@ -47,11 +44,15 @@ class App
 
     public static function getInstance($configOrFilePath = null)
     {
-        if (!self::$_app) new static($configOrFilePath);
+        if (!self::$_app) {
+            new static($configOrFilePath);
+        }
+
         return self::$_app;
     }
 
-    public function getBaseNameSpace(){
+    public function getBaseNameSpace()
+    {
         return $this->name_space_pre;
     }
 
@@ -64,7 +65,7 @@ class App
 
     public function setDisableNameSpace(...$ban_name)
     {
-        $this->forbid_name_space_pre = array_merge($this->forbid_name_space_pre, $ban_name);;
+        $this->forbid_name_space_pre = array_merge($this->forbid_name_space_pre, $ban_name);
         return $this;
     }
 
@@ -73,18 +74,17 @@ class App
 
         self::$_app = $this;
 
-
         Args::cli_parse();
 
         if ($configOrFilePath && file_exists($config_file = $configOrFilePath)) {
             $config = json_decode(file_get_contents($configOrFilePath), true);
         } else if (is_array($configOrFilePath)) {
             $config = $configOrFilePath;
-        } else
+        } else {
             $config = [];
+        }
 
         Args::setConfig($config);
-
 
     }
 
@@ -126,11 +126,14 @@ class App
         return [$this->runner_object, $this->runner_method];
     }
 
-
     public function run($app = null)
     {
 
+        $html = "";
+
         if ($app === null) {
+
+            $this->beforRun();
 
             if ($app = Args::params("a")) {
 
@@ -150,37 +153,27 @@ class App
                     $app = str_replace("/", "@", $app);
                 }
             }
-        }
 
-        $m = "index";
+            $m = "index";
 
-        if (is_string($app)) {
-            if (stripos($app, "@") > 0) {
+            if (is_string($app)) {
+                if (stripos($app, "@") > 0) {
 
-                list($app, $m) = explode("@", $app);
+                    list($app, $m) = explode("@", $app);
+                }
             }
-        }
 
-
-        $html = "";
-
-
-        if (is_string($app)) {
-
-            $this->beforRun();
             $find = false;
 
             $app_o = $app;
 
-
             $name_list = array_merge(array_unique($this->name_space_pre), ["", "app"]);
-
 
             foreach ($name_list as $item) {
                 $item = rtrim($item, "\\");
-                if ($item)
+                if ($item) {
                     $app = $item . "\\" . $app_o;
-                else {
+                } else {
                     $app = $app_o;
                 }
                 if (class_exists($app)) {
@@ -207,16 +200,14 @@ class App
                 exit;
             }
 
-            if ($this->forbid_name_space_pre)
+            if ($this->forbid_name_space_pre) {
                 foreach ($this->forbid_name_space_pre as $item) {
                     if (stripos($app, $item) === 0) {
                         echo "class forbid!";
                         exit;
                     }
                 }
-
-
-           
+            }
 
             $run = new $app();
             $this->runner_object = $run;
@@ -224,7 +215,6 @@ class App
             if ($run instanceof IArgsKeys) {
                 Args::setKeysForArgValues($run->keysForArgValues());
             }
-
 
             if (method_exists($run, $m)) {
                 $this->runner_method = $m;
@@ -236,14 +226,14 @@ class App
                 }
             }
 
-
             if (method_exists($run, "init")) {
                 $run->init();
             }
-            if ($this->runner_method)
+            if ($this->runner_method) {
                 $html = $run->{$this->runner_method}();
+            }
 
-        } else {
+        } else if(is_callable($app)){
             $this->runner_object = $app;
 
             $this->beforRun();
@@ -257,14 +247,13 @@ class App
         return;
     }
 
-
     private function beforRun()
     {
 
         array_map(function ($irun) {
 
             self::init_one_run($irun);
-        },  array_merge( $this->init_fun,$this->init_fun_end));
+        }, array_merge($this->init_fun, $this->init_fun_end));
 
     }
 
@@ -289,6 +278,5 @@ class App
 
         }
     }
-
 
 }
