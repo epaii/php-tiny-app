@@ -233,9 +233,8 @@ class App
                 $html = $run->{$this->runner_method}();
             }
 
-        } else if(is_callable($app)){
+        } else if(is_callable($app) || class_exists($app)) {
             $this->runner_object = $app;
-
             $this->beforRun();
 
             $html = self::init_one_run($app);
