@@ -22,13 +22,20 @@ abstract class api
         $this->log_enable = $enable;
         $this->log_enable_password=$password;
     }
-    private function _log(){
+    private function _log($msg = null){
         if($this->log_enable){
             $log_file = Tools::getRuntimeDirectory()."/apilogs";
         
             Tools::mkdir($log_file);
-            file_put_contents($log_file."/".date("Ymd").".txt","\n".Tools::get_current_url()."&".http_build_query(Args::postVal()),FILE_APPEND);
+            if($msg==null)
+            {
+                $msg =  Tools::get_current_url()."&".http_build_query(Args::postVal());
+            }
+            file_put_contents($log_file."/".date("Ymd").".txt","\n".$msg,FILE_APPEND);
         }
+    }
+    protected function logString($msg){
+        $this->_log($msg);
     }
     public function _show_log(){
         if(!$this->log_enable) exit;

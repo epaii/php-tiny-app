@@ -2,6 +2,8 @@
 
 namespace epii\server;
 
+use epii\lock\drivers\FileLock;
+use epii\lock\Lock;
 use epii\server\i\IArgsKeys;
 use epii\server\i\IRun;
 
@@ -23,7 +25,8 @@ class App
     private $name_space_pre = [];
     private $forbid_name_space_pre = [];
     private static $singleton_init_array = [];
-
+    private $blocking_app =[];
+    private $blocking_error_handler =null;
     public function defaultApp($app)
     {
         if (!isset($_REQUEST['app'])) {
@@ -62,7 +65,21 @@ class App
 
         return $this;
     }
-
+    public function setBlockingApp(...$apps)
+    {
+        $this->blocking_app = array_merge($this->blocking_app, $apps);
+        return $this;
+    }
+    public function setBlockingDriver($driver_class_name, $config = array())
+    {
+        Lock::init($driver_class_name,$config);
+        return $this;
+    }
+    public function setBlockingErrorHandler(callable $blocking_error_handler)
+    {
+        $this->blocking_error_handler = $blocking_error_handler;
+        return $this;
+    }
     public function setDisableNameSpace(...$ban_name)
     {
         $this->forbid_name_space_pre = array_merge($this->forbid_name_space_pre, $ban_name);
@@ -142,6 +159,9 @@ class App
             } else {
                 $app = "index";
             }
+            $req_app = $app;
+
+
             if ($app) {
                 $config = Args::configVal("app");
 
@@ -209,6 +229,7 @@ class App
                 }
             }
 
+          
             $run = new $app();
             $this->runner_object = $run;
 
@@ -226,12 +247,48 @@ class App
                 }
             }
 
-            if (method_exists($run, "init")) {
-                $run->init();
+            $goto_run  = true;   
+            $lock  = false;
+            if($req_app)
+            {
+                if(in_array($req_app,$this->blocking_app)){
+                    if(!Lock::isInit()){
+                        Lock::init(FileLock::class,["lock_dir"=>Tools::getRuntimeDirectory().DIRECTORY_SEPARATOR."lock"]);
+                    }
+                    $lock =Lock::doLock($req_app);
+                    if(!$lock){
+                        $goto_run = false;
+                        
+                        if (method_exists($run, $bef = $this->runner_method."_blocking_error")) {
+                            $html = $run->{$bef}();
+                        }else{
+                            if($this->blocking_error_handler)
+                            {
+                                $f = $this->blocking_error_handler;
+                                $f($req_app);
+                            }else{
+                                if(Args::is_cli() || Args::isPost() || Args::isAjax()){
+                                    Response::error("系统繁忙请重试", ["error_type" => "system_busy", "tip" => "系统繁忙请重试"]);
+                                }else{
+                                    $html = "system_busy";
+                                }
+                            }
+                           
+                        }    
+                    } 
+                }
             }
-            if ($this->runner_method) {
-                $html = $run->{$this->runner_method}();
-            }
+             if($goto_run){
+                if (method_exists($run, "init")) {
+                    $run->init();
+                }
+                if ($this->runner_method) {
+                    $html = $run->{$this->runner_method}();
+                }
+             }
+             if($lock){
+                Lock::unLock($req_app);
+             }
 
         } else if(is_callable($app) || class_exists($app)) {
             $this->runner_object = $app;

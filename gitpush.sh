@@ -1,3 +1,3 @@
 git add .
-git ci -m "init"
+git commit -m "init"
 git push origin master
