@@ -148,77 +148,86 @@ class App
 
         $html = "";
 
-        if ($app === null) {
+        if ($app === null || ( is_string($app) && class_exists($app))) {
 
             $this->beforRun();
 
-            if ($app = Args::params("a")) {
+            if($app === null)
+            {
+                if ($app = Args::params("a")) {
 
-            } else if ($app = Args::params("app")) {
-
-            } else {
-                $app = "index";
-            }
-            $req_app = $app;
-
-
-            if ($app) {
-                $config = Args::configVal("app");
-
-                if (isset($config[$app])) {
-                    $app = $config[$app];
-
+                } else if ($app = Args::params("app")) {
+    
                 } else {
-                    $app = str_replace(".", "\\", $app);
-                    $app = str_replace("/", "@", $app);
+                    $app = "index";
                 }
-            }
-
-            $m = "index";
-
-            if (is_string($app)) {
-                if (stripos($app, "@") > 0) {
-
-                    list($app, $m) = explode("@", $app);
+                $req_app = $app;
+    
+    
+                if ($app) {
+                    $config = Args::configVal("app");
+    
+                    if (isset($config[$app])) {
+                        $app = $config[$app];
+    
+                    } else {
+                        $app = str_replace(".", "\\", $app);
+                        $app = str_replace("/", "@", $app);
+                    }
                 }
-            }
-
-            $find = false;
-
-            $app_o = $app;
-
-            $name_list = array_merge(array_unique($this->name_space_pre), ["", "app"]);
-
-            foreach ($name_list as $item) {
-                $item = rtrim($item, "\\");
-                if ($item) {
-                    $app = $item . "\\" . $app_o;
-                } else {
-                    $app = $app_o;
+    
+                $m = "index";
+    
+                if (is_string($app)) {
+                    if (stripos($app, "@") > 0) {
+    
+                        list($app, $m) = explode("@", $app);
+                    }
                 }
-                if (class_exists($app)) {
-                    $this->runner_name_space_pre = $item;
-                    $find = true;
-                    break;
+    
+                $find = false;
+    
+                $app_o = $app;
+    
+                $name_list = array_merge(array_unique($this->name_space_pre), ["", "app"]);
+    
+                foreach ($name_list as $item) {
+                    $item = rtrim($item, "\\");
+                    if ($item) {
+                        $app = $item . "\\" . $app_o;
+                    } else {
+                        $app = $app_o;
+                    }
+                    if (class_exists($app)) {
+                        $this->runner_name_space_pre = $item;
+                        $find = true;
+                        break;
+                    }
                 }
-            }
-
-            if (!$find) {
-                echo "class wrong!";
-                exit;
-            }
-            $find = false;
-            foreach ($name_list as $item) {
-
-                if ($item && stripos($app, $item . "\\") === 0) {
-                    $find = true;
+    
+                if (!$find) {
+                    echo "class wrong!";
+                    exit;
                 }
+                $find = false;
+                foreach ($name_list as $item) {
+    
+                    if ($item && stripos($app, $item . "\\") === 0) {
+                        $find = true;
+                    }
+                }
+    
+                if (!$find) {
+                    echo "class over!";
+                    exit;
+                }
+            }else{
+                $m = "run";
             }
+            
 
-            if (!$find) {
-                echo "class over!";
-                exit;
-            }
+
+
 
             if ($this->forbid_name_space_pre) {
                 foreach ($this->forbid_name_space_pre as $item) {
@@ -290,7 +299,7 @@ class App
                 Lock::unLock($req_app);
              }
 
-        } else if(is_callable($app) || class_exists($app)) {
+        } else if(is_callable($app)) {
             $this->runner_object = $app;
             $this->beforRun();
 
