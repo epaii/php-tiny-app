@@ -216,8 +216,8 @@ class Args
 
             $is_default_value = false;
             if (isset($data[$index])) {
-                $value = $data[$index];
-                $must_err = $must_has && !$value;
+                $value = trim($data[$index]);
+                $must_err = $must_has &&  (strlen($value."")==0);
             } else {
                 $must_err = $must_has;
                 $value = $default;
@@ -247,6 +247,8 @@ class Args
                             $value = explode(",", $value);
                         } elseif (stripos($value, ";") !== false) {
                             $value = explode(";", $value);
+                        }else{
+                            $value =[$value];
                         }
 
                     } else if (in_array("b", $formate)) {
