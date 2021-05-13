@@ -217,7 +217,7 @@ class Args
             $is_default_value = false;
             if (isset($data[$index])) {
                 $value =  is_string($data[$index])? trim($data[$index]):$data[$index];
-                $must_err = $must_has && (is_array($value)?!$value: (strlen($value."")==0));
+                $must_err = $must_has && (is_array($value)?(!$value): (strlen($value."")==0));
             } else {
                 $must_err = $must_has;
                 $value = $default;
