@@ -70,7 +70,10 @@ class Tools
         $http = explode(":", $_SERVER['HTTP_HOST']);
         $_SERVER['HTTP_HOST'] = $http[0];
 
-        if (!isset($_SERVER['SERVER_PORT'])) {
+
+        if (!isset($http[1])) {
+            $_SERVER['SERVER_PORT'] = $http[1];
+        } else   if (!isset($_SERVER['SERVER_PORT'])) {
             $_SERVER['SERVER_PORT'] = isset($http[1]) ? $http[1] : "80";
         }
         if (!in_array($_SERVER['SERVER_PORT'], ["80", "443"])) {
